@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body>
+
+    <fieldset id="chat">
+        Loading chat...
+    </fieldset>
+
+    <fieldset>
+        <form>
+            <input name="name" placeholder="Your name">
+            <input name="message" placeholder="Message">
+            <button>submit</button>
+        </form>
+        <button type="button" onclick="clearChat()">Clear chat</button>
+    </fieldset>
+
+    <script>
+        const chat = document.querySelector("#chat");
+        const form = document.querySelector("form");
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            sendChat(form);
+        });
+
+        getChat();
+
+        async function sendChat(form) {
+            const name = form.name.value;
+            const message = form.message.value;
+            if(name|| message == "") return   // return if name or message is missing
+            const response = await fetch(`http://localhost:3002/create-message?name=${name}&message=${message}`);
+            const messages = await response.json();
+
+            renderMessages(messages);
+
+            form.message.value = '';
+            form.name.value = '';
+        }
+
+        async function getChat() {
+            const response = await fetch('http://localhost:3002/read-messages');
+            const messages = await response.json();
+            renderMessages(messages);
+        }
+
+        function renderMessages(messages) {
+            chat.innerHTML = messages.map(m => `
+            <p><strong>${m.name}</strong>: ${m.message}</p>
+        `).join('');
+        }
+
+        async function clearChat() {
+            console.log("Clearing chat...")
+            const response = await fetch('http://localhost:3002/clear-chat')
+            const messages = await response.json()
+            chat.innerHTML = ""
+            console.log(`The new messageHistory is: ${messages}`)
+        }
+    </script>
+
+</body>
+
+</html>
